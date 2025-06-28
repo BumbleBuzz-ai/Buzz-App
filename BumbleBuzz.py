@@ -304,14 +304,20 @@ if csv_file and audio_folder and os.path.exists(audio_folder):
                     
                     with nav_col1:
                         if st.button("➡️ NEXT", use_container_width=True):
-                            df = update_label(df, current_row.name, 'listened', 1)
+                            if df.at[current_row.name, 'label_listened'] == -1:
+                                st.warning("Audio was not labeled, it can be verified again later by reloading the file.")
+                            else:
+                                df = update_label(df, current_row.name, 'listened', 1)
                             st.session_state.current_index += 1
                             st.success("➡️ Moving to next audio...")
                             st.rerun()
                     
                     with nav_col2:
                         if st.button("🎲 RANDOM", use_container_width=True):
-                            df = update_label(df, current_row.name, 'listened', 1)
+                            if df.at[current_row.name, 'label_listened'] == -1:
+                                st.warning("Audio was not labeled, it can be verified again later by reloading the file.")
+                            else:
+                                df = update_label(df, current_row.name, 'listened', 1)
                             remaining_indices = list(range(len(unlistened_false_alarms)))
                             if len(remaining_indices) > 1:
                                 remaining_indices.remove(st.session_state.current_index)
