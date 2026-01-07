@@ -135,7 +135,7 @@ def initialize_dataframe(df):
     # Initialize 'label_listened' column (for false alarm make it -1 or else keep it same as buzzlabel)
     if 'label_listened' not in df.columns:
         df['label_listened'] = df.apply(
-            lambda x: -1 if (x['buzzlabel'] == 0 and x['pred_0.95'] == 1) else x['buzzlabel'], 
+            lambda x: -1 if (x['buzzlabel'] == 0 and x['pred_best'] == 1) else x['buzzlabel'], 
             axis=1
         )
     
@@ -215,7 +215,7 @@ if csv_file and audio_folder and os.path.exists(audio_folder):
     df = st.session_state.df
     
     # filter for false alarms that haven't been listened to
-    false_alarms = df[(df['buzzlabel'] == 0) & (df['pred_0.95'] == 1)]
+    false_alarms = df[(df['buzzlabel'] == 0) & (df['pred_best'] == 1)]
     unlistened_false_alarms = false_alarms[false_alarms['listened'] == 0]
     
     # stats
@@ -262,14 +262,21 @@ if csv_file and audio_folder and os.path.exists(audio_folder):
             st.session_state.current_index = 0
         
         current_row = unlistened_false_alarms.iloc[st.session_state.current_index]
-        audio_path = os.path.join(audio_folder, current_row['flacfile'])
+        ## is there a site column ? 
+        if 'site' in unlistened_false_alarms.columns:
+            audio_path = os.path.join(audio_folder,f"audio_{current_row['site']}" ,current_row['flacfile'])
+            currentsite = current_row['site']
+        else:
+            audio_path = os.path.join(audio_folder, current_row['flacfile'])
+            currentsite = original_name
         
         st.markdown(f"""
             <div class="audio-info">
                 <h3>🎧 Currently Reviewing</h3>
                 <p><strong>File:</strong> {current_row['flacfile']}</p>
+                <p><strong>Site:</strong> {currentsite}</p>
                 <p><strong>Original Buzz Label:</strong> {current_row['buzzlabel']}</p>
-                <p><strong>Model Prediction (0.95 threshold):</strong> {current_row['pred_0.95']}</p>
+                <p><strong>Model Prediction (best threshold):</strong> {current_row['pred_best']}</p>
                 <p><strong>Review #{len(false_alarms) - len(unlistened_false_alarms) + 1}</strong> of {len(false_alarms)}</p>
             </div>
         """, unsafe_allow_html=True)
@@ -363,7 +370,7 @@ if csv_file and audio_folder and os.path.exists(audio_folder):
                     st.json({
                         'row_index': int(current_row.name),
                         'buzzlabel': int(current_row['buzzlabel']),
-                        'pred_0.95': int(current_row['pred_0.95']),
+                        'pred_best': int(current_row['pred_best']),
                         'listened': int(current_listened),
                         'label_listened': int(current_label_listened),
                         'data_modified': st.session_state.data_modified,
