@@ -217,6 +217,9 @@ if csv_file and audio_folder and os.path.exists(audio_folder):
     # filter for false alarms that haven't been listened to
     false_alarms = df[(df['buzzlabel'] == 0) & (df['pred_best'] == 1)]
     unlistened_false_alarms = false_alarms[false_alarms['listened'] == 0]
+
+    # keep only the rows of df that are false alarms and unlistened
+    df = df.loc[false_alarms.index]
     
     # stats
     col1, col2, col3, col4 = st.columns(4)
